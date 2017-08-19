@@ -29,7 +29,7 @@ contract('EventManager', function(accounts) {
       });
   });
 
-  it.only('should create 5 events', function() {
+  it('should create 5 events', function() {
     let terrapin;
     return deployed().then((_terrapin) => {
       terrapin = _terrapin; // make global for use in later "then"s
@@ -47,9 +47,9 @@ contract('EventManager', function(accounts) {
     });
   });
 
-  it('should create an event and issue tickets', function() {
-    let eventName = 'fuck yeah kevin';
-    let price = 1000;
+  it.only('should create an event and issue tickets', function() {
+    let eventName = 'Phish @ MSG';
+    let price = 50;
     let numTickets = 1;
 
     let terrapin;
@@ -75,9 +75,9 @@ contract('EventManager', function(accounts) {
           // test tickets
           .then(() => {
             // shuuld be done with doWhielst
-            let numTickets = [1, 2, 3, 4, 5, 6];
+            let numTickets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
             return pasync.eachSeries(numTickets, () => {
-              return eventInstance.printTicket(10000, {
+              return eventInstance.printTicket(price, {
                 from: accounts[1],
                 gas: 4700000
               }).then((tx) => {
