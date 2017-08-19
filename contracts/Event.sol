@@ -20,6 +20,8 @@ contract Event {
 	}
 
 	function printTickets(uint _price, uint _numTickets) {
+		/*require(msg.sender == owner);*/
+
 		for (uint i = 0; i < _numTickets; i++) {
 			tickets.push(new Ticket(
 				owner,
