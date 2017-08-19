@@ -30,7 +30,7 @@ contract('EventManager', function(accounts) {
     let terrapin;
     return deployed().then((_terrapin) => {
       terrapin = _terrapin; // make global for use in later "then"s
-      console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
+      // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
       return terrapin.createEvent(
         eventName,
         price,

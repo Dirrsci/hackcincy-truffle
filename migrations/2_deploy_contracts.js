@@ -4,5 +4,8 @@ var EventManager = artifacts.require("./EventManager.sol");
 module.exports = function(deployer) {
   // deployer.deploy(ConvertLib);
   // deployer.link(ConvertLib, MetaCoin);
-  deployer.deploy(EventManager);
+  deployer.deploy(EventManager)
+    .then(() => {
+      process.env.TERRAPIN_ADDR = EventManager.address;
+    });
 };
