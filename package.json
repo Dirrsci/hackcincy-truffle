@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "truffle compile; node ./main"
+  },
   "dependencies": {
     "babel-eslint": "^7.2.3",
     "eslint": "^4.5.0",
