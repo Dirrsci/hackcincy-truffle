@@ -25,7 +25,7 @@ contract('EventManager', function(accounts) {
   it('should create an event and issue tickets', function() {
     let eventName = 'test event name';
     let price = 1000;
-    let numTickets = 15;
+    let numTickets = 1;
 
     let terrapin;
     return deployed().then((_terrapin) => {
