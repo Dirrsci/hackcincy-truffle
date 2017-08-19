@@ -50,7 +50,6 @@ contract('EventManager', function(accounts) {
   it.only('should create an event and issue tickets', function() {
     let eventName = 'Phish @ MSG';
     let price = 50;
-    let numTickets = 1;
 
     let terrapin;
     return deployed().then((_terrapin) => {
