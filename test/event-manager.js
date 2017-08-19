@@ -1,5 +1,5 @@
 let Web3 = require('web3');
-let web3 = new Web3();
+let web3 = new Web3(new Web3.providers.HttpProvider('http://192.168.12.226:8545'));
 let pasync = require('pasync');
 
 let EventManager = artifacts.require("./EventManager.sol");
@@ -29,23 +29,34 @@ contract('EventManager', function(accounts) {
       });
   });
 
-  it('should create 5 events', function() {
-    let terrapin;
-    return deployed().then((_terrapin) => {
-      terrapin = _terrapin; // make global for use in later "then"s
-      // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
-      let numTimes = [ 1, 2, 3, 4, 5, 6 ];
-      return pasync.eachSeries(numTimes, () => {
-        return terrapin.createEvent(
-          guidGenerator(),
-          {
-            from: accounts[1],
-            gas: 4700000
-          }
-        );
-      });
-    });
-  });
+  // it.only('should create 5 events', function() {
+  //   let terrapin;
+  //   return deployed().then((_terrapin) => {
+  //     terrapin = _terrapin; // make global for use in later "then"s
+  //     // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
+  //     let numTimes = [ 1, 2, 3, 4, 5, 6 ];
+  //     return pasync.eachSeries(numTimes, () => {
+  //       return terrapin.createEvent(
+  //         guidGenerator(),
+  //         {
+  //           from: accounts[1],
+  //           gas: 4700000
+  //         }
+  //       )
+  //         .then((tx) => {
+  //           return new Promise((resolve) => {
+  //             setTimeout(() => {
+  //               resolve(tx);
+  //             }, 5000);
+  //           });
+  //         })
+  //         .then((tx) => web3.eth.getTransactionReceipt(tx.tx))
+  //         .then((test) => {
+  //           console.log('test:', test);
+  //         });
+  //     });
+  //   });
+  // });
 
   it.only('should create an event and issue tickets', function() {
     let eventName = 'Phish @ MSG';
