@@ -15,13 +15,11 @@ contract EventManager {
 		owner = msg.sender;
 	}
 
-	function createEvent(bytes32 _eventName, uint _price, uint _numTickets) {
+	function createEvent(bytes32 _eventName) {
 		// dispatch an evnet
 		events.push(new Event(
 			msg.sender,
-			_eventName,
-			_price,
-			_numTickets
+			_eventName
 		));
 	}
 

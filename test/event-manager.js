@@ -13,6 +13,13 @@ function deployed() {
   return EventManager.deployed();
 }
 
+function guidGenerator() {
+  var S4 = function() {
+    return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+  };
+  return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+}
+
 contract('EventManager', function(accounts) {
   it('should init manager', function() {
     return deployed().then((terrapin) => terrapin.owner.call())
@@ -22,8 +29,26 @@ contract('EventManager', function(accounts) {
       });
   });
 
+  it.only('should create 5 events', function() {
+    let terrapin;
+    return deployed().then((_terrapin) => {
+      terrapin = _terrapin; // make global for use in later "then"s
+      // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
+      let numTimes = [ 1, 2, 3, 4, 5, 6 ];
+      return pasync.eachSeries(numTimes, () => {
+        return terrapin.createEvent(
+          guidGenerator(),
+          {
+            from: accounts[1],
+            gas: 4700000
+          }
+        );
+      });
+    });
+  });
+
   it('should create an event and issue tickets', function() {
-    let eventName = 'test event name';
+    let eventName = 'fuck yeah kevin';
     let price = 1000;
     let numTickets = 1;
 
@@ -33,8 +58,6 @@ contract('EventManager', function(accounts) {
       // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
       return terrapin.createEvent(
         eventName,
-        price,
-        numTickets,
         {
           from: accounts[1],
           gas: 4700000
@@ -43,13 +66,25 @@ contract('EventManager', function(accounts) {
       .then((tx) => terrapin.getEvents.call())
       .then((eventAddresses) => {
         let eventInstance = Event.at(eventAddresses[0]);
-        return Promise.resolve()
-          .then(() => eventInstance.name.call())
+        return eventInstance.name.call()
           .then((name) => {
             name = web3.utils.toAscii(name);
+            // ensure name of instance is what we published
             assert(name === eventName);
           })
           // test tickets
+          .then(() => {
+            // shuuld be done with doWhielst
+            let numTickets = [1, 2, 3, 4, 5, 6];
+            return pasync.eachSeries(numTickets, () => {
+              return eventInstance.printTicket(10000, {
+                from: accounts[1],
+                gas: 4700000
+              }).then((tx) => {
+                console.log(tx);
+              });
+            });
+          })
           .then(() => eventInstance.getTickets.call())
           .then((tickets) => {
             return pasync.eachSeries(tickets, (ticketAddr) => {

@@ -13,21 +13,17 @@ contract Event {
 
 	bytes32 public name;
 
-	function Event(address _owner, bytes32 _name, uint _price, uint _numTickets) {
+	function Event(address _owner, bytes32 _name) {
 		owner = _owner;
 		name = _name;
-		printTickets(_price, _numTickets);
 	}
 
-	function printTickets(uint _price, uint _numTickets) {
-		/*require(msg.sender == owner);*/
-
-		for (uint i = 0; i < _numTickets; i++) {
-			tickets.push(new Ticket(
-				owner,
-				_price
-			));
-		}
+	function printTicket(uint _price) {
+		require(msg.sender == owner);
+		tickets.push(new Ticket(
+			owner,
+			_price
+		));
 	}
 
 	function getTickets() constant returns(address[]) {

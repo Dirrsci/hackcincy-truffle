@@ -1,11 +1,27 @@
 let restify = require('restify');
+let corsMiddleware = require('restify-cors-middleware');
+
 let server = restify.createServer();
 
-let abis = JSON.stringify([
-  require('./build/contracts/Event'),
-  require('./build/contracts/EventManager'),
-  require('./build/contracts/Ticket')
-]);
+const cors = corsMiddleware({
+  origins: ['http://localhost:3000'],
+  allowHeaders: ['*']
+  // exposeHeaders: ['API-Token-Expiry']
+});
+
+server.pre(cors.preflight);
+server.use(cors.actual);
+
+server.use(restify.plugins.acceptParser(server.acceptable));
+server.use(restify.plugins.queryParser());
+server.use(restify.plugins.bodyParser());
+
+
+let abis = JSON.stringify({
+  terrapin: require('./build/contracts/EventManager'),
+  event: require('./build/contracts/Event'),
+  ticket: require('./build/contracts/Ticket')
+});
 
 // used by truffles deploy process
 module.exports = (terrapinAddr) => {
