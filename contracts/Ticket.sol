@@ -7,9 +7,11 @@ pragma solidity ^0.4.4;
 
 contract Ticket {
 	address public owner;
+	uint public price;
 
-	function Ticket() {
-		owner = msg.sender;
+	function Ticket(address _owner, uint _price) {
+		owner = _owner;
+		price = _price;
 	}
 	/*mapping (address => uint) balances;
 

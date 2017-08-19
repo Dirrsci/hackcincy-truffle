@@ -1,5 +1,7 @@
 pragma solidity ^0.4.4;
 
+import "./Event.sol";
+
 // This is just a simple example of a coin-like contract.
 // It is not standards compatible and cannot be expected to talk to other
 // coin/token contracts. If you want to create a standards-compliant
@@ -7,14 +9,29 @@ pragma solidity ^0.4.4;
 
 contract EventManager {
 	address public owner;
+	address[] public events;
 
 	function EventManager() {
 		owner = msg.sender;
 	}
 
-	function test() constant returns (uint) {
-		return 1;
+	function createEvent(bytes32 _eventName, uint _price, uint _numTickets) {
+		// dispatch an evnet
+		events.push(new Event(
+			msg.sender,
+			_eventName,
+			_price,
+			_numTickets
+		));
 	}
+
+	function getEvents() constant returns(address[]) {
+		return events;
+	}
+
+	/*function test() constant returns (uint) {
+		return 1;
+	}*/
 	/*mapping (address => uint) balances;
 
 	event Transfer(address indexed _from, address indexed _to, uint256 _value);

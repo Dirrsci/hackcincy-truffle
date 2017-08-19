@@ -1,14 +1,72 @@
+let Web3 = require('web3');
+let web3 = new Web3();
+let pasync = require('pasync');
+
 let EventManager = artifacts.require("./EventManager.sol");
+let Event = artifacts.require("./Event.sol");
+let Ticket = artifacts.require("./Ticket.sol");
+
+web3.utils.toAsciiOriginal = web3.utils.toAscii;
+web3.utils.toAscii = function(input) { return web3.utils.toAsciiOriginal(input).replace(/\u0000/g, '') };
+
+function deployed() {
+  return EventManager.deployed();
+}
 
 contract('EventManager', function(accounts) {
   it('should init manager', function() {
-    return EventManager.deployed().then(function(instance) {
-      return instance.test.call();
-    }).then(function(ownerAddress) {
-      console.log('ownerAddress', ownerAddress);
-      // assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
-    });
+    return deployed().then((terrapin) => terrapin.owner.call())
+      .then((ownerAddress) => {
+        assert(ownerAddress === accounts[0]);
+        // assert.equal(balance.valueOf(), 10000, "10000 wasn't in the first account");
+      });
   });
+
+  it('should create an event and issue tickets', function() {
+    let eventName = 'test event name';
+    let price = 1000;
+    let numTickets = 15;
+
+    let terrapin;
+    return deployed().then((_terrapin) => {
+      terrapin = _terrapin; // make global for use in later "then"s
+      console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
+      return terrapin.createEvent(
+        eventName,
+        price,
+        numTickets,
+        {
+          from: accounts[1],
+          gas: 4700000
+        });
+    })
+      .then((tx) => terrapin.getEvents.call())
+      .then((eventAddresses) => {
+        let eventInstance = Event.at(eventAddresses[0]);
+        return Promise.resolve()
+          .then(() => eventInstance.name.call())
+          .then((name) => {
+            name = web3.utils.toAscii(name);
+            assert(name === eventName);
+          })
+          // test tickets
+          .then(() => eventInstance.getTickets.call())
+          .then((tickets) => {
+            return pasync.eachSeries(tickets, (ticketAddr) => {
+              let ticketInstance = Ticket.at(ticketAddr);
+              // console.log(ticketInstance);
+              return ticketInstance.owner.call()
+                .then((owner) => {
+                  assert(owner === accounts[1]);
+                });
+            });
+          });
+      });
+  });
+
+  // it('should', function() {
+  //   return x;
+  // });
 });
 
 // it("should put 10000 MetaCoin in the first account", function() {
