@@ -29,38 +29,78 @@ contract('EventManager', function(accounts) {
       });
   });
 
-  // it.only('should create 5 events', function() {
-  //   let terrapin;
-  //   return deployed().then((_terrapin) => {
-  //     terrapin = _terrapin; // make global for use in later "then"s
-  //     // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
-  //     let numTimes = [ 1, 2, 3, 4, 5, 6 ];
-  //     return pasync.eachSeries(numTimes, () => {
-  //       return terrapin.createEvent(
-  //         guidGenerator(),
-  //         {
-  //           from: accounts[1],
-  //           gas: 4700000
-  //         }
-  //       )
-  //         .then((tx) => {
-  //           return new Promise((resolve) => {
-  //             setTimeout(() => {
-  //               resolve(tx);
-  //             }, 5000);
-  //           });
-  //         })
-  //         .then((tx) => web3.eth.getTransactionReceipt(tx.tx))
-  //         .then((test) => {
-  //           console.log('test:', test);
-  //         });
-  //     });
-  //   });
-  // });
+  it('should create 5 events', function() {
+    let terrapin;
+    return deployed().then((_terrapin) => {
+      terrapin = _terrapin; // make global for use in later "then"s
+      // console.log(JSON.stringify(terrapin.abi, null, '  '), terrapin.address);
+      let numTimes = [ 1, 2, 3, 4, 5, 6 ];
+      return pasync.eachSeries(numTimes, () => {
+        return terrapin.createEvent(
+          guidGenerator(),
+          {
+            from: accounts[1],
+            gas: 4700000
+          }
+        )
+          .then((tx) => web3.eth.getTransactionReceipt(tx.tx))
+          .then((test) => {
+            console.log('test:', test);
+          });
+      });
+    });
+  });
 
   it.only('should create an event and issue tickets', function() {
-    let eventName = 'Phish @ MSG';
-    let price = 50;
+    let terrapin;
+
+    function createEvent(name, price, i) {
+      console.log('i', i);
+      return terrapin.createEvent(name,
+        {
+          from: accounts[1],
+          gas: 4700000
+        }
+      )
+        .then((tx) => terrapin.getEvents.call())
+        .then((eventAddrs) => Event.at(eventAddrs[i]))
+        .then((eventInstance) => {
+          // shuuld be done with doWhielst
+          let numTickets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+          return pasync.eachSeries(numTickets, () => {
+            return eventInstance.printTicket(price, {
+              from: accounts[1],
+              gas: 4700000
+            }).then((tx) => {
+              console.log(tx);
+            });
+          });
+        });
+    }
+
+    return deployed().then((_terrapin) => {
+      terrapin = _terrapin; // make global for use in later "then"s
+    })
+      .then(() => {
+        let i = 0;
+        return pasync.eachSeries([
+          { name: 'The String Cheese Incident', price: 100 },
+          { name: 'Phish @ MSG', price: 80 },
+          { name: 'DSO @ Taft', price: 40 },
+          { name: 'Marcus King Band @ Hamilton', price: 15 },
+          { name: 'Greensky Bluegrass in the woods', price: 75 }
+        ], (obj) => {
+          return createEvent(obj.name, obj.price, i)
+            .then(() => {
+              i++;
+            });
+        });
+      });
+  });
+
+  it('should buy ticket', function() {
+    let eventName = 'String Cheese Incident @ Colorado';
+    let price = 700;
 
     let terrapin;
     return deployed().then((_terrapin) => {
@@ -76,35 +116,34 @@ contract('EventManager', function(accounts) {
       .then((tx) => terrapin.getEvents.call())
       .then((eventAddresses) => {
         let eventInstance = Event.at(eventAddresses[0]);
-        return eventInstance.name.call()
-          .then((name) => {
-            name = web3.utils.toAscii(name);
-            // ensure name of instance is what we published
-            assert(name === eventName);
-          })
-          // test tickets
-          .then(() => {
-            // shuuld be done with doWhielst
-            let numTickets = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-            return pasync.eachSeries(numTickets, () => {
-              return eventInstance.printTicket(price, {
-                from: accounts[1],
-                gas: 4700000
-              }).then((tx) => {
-                console.log(tx);
-              });
-            });
-          })
-          .then(() => eventInstance.getTickets.call())
-          .then((tickets) => {
-            return pasync.eachSeries(tickets, (ticketAddr) => {
-              let ticketInstance = Ticket.at(ticketAddr);
-              // console.log(ticketInstance);
-              return ticketInstance.owner.call()
-                .then((owner) => {
-                  assert(owner === accounts[1]);
-                });
-            });
+        return eventInstance.printTicket(price, {
+          from: accounts[1],
+          gas: 4700000
+        }).then(() => eventInstance);
+      })
+      .then((eventInstance) => {
+        return eventInstance.getTickets.call()
+          .then((ticketAddrs) => Ticket.at(ticketAddrs[0]))
+          .then((ticketInstance) => {
+            return ticketInstance.owner.call()
+              .then((owner) => {
+                console.log('original owner: ', owner);
+              })
+              .then(() => ticketInstance);
+          });
+      })
+      .then((ticketInstance) => {
+        return ticketInstance.buyTicket({
+          value: price,
+          from: accounts[0],
+          gas: 4700000
+        }).then(() => ticketInstance);
+      })
+      .then((ticketInstance) => {
+        return ticketInstance.owner.call()
+          .then((owner) => {
+            console.log('new owner: ', owner);
+            return ticketInstance;
           });
       });
   });
