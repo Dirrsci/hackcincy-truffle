@@ -1,5 +1,8 @@
 let restify = require('restify');
 let corsMiddleware = require('restify-cors-middleware');
+let mongoose = require('mongoose');
+let bluebird = require('bluebird');
+let User = require('./UserApi');
 
 let server = restify.createServer();
 
@@ -8,6 +11,10 @@ const cors = corsMiddleware({
   allowHeaders: ['*']
   // exposeHeaders: ['API-Token-Expiry']
 });
+
+mongoose.connect('mongodb://localhost/terrapin', { promiseLibrary: bluebird });
+
+let user = new User();
 
 server.pre(cors.preflight);
 server.use(cors.actual);
@@ -31,6 +38,22 @@ module.exports = (terrapinAddr) => {
       terrapinAddr
     });
     next();
+  });
+
+  server.post('/login', (req, res, next) => {
+    const { username, password } = req.body;
+    user.getUser(username, password)
+      .then((userAccount) => {
+        res.send(userAccount);
+        return next();
+      })
+      .catch((err) => {
+        return user.register(username, password)
+          .then((userAccount) =>{
+            res.send(userAccount);
+            return next();
+          });
+      });
   });
 
   server.listen(8080, function() {
